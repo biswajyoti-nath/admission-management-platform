@@ -67,7 +67,7 @@ admission-management-platform/
 
 ## Current Phase
 
-**Phase 4 — Class Skeletons** (completed)
+**Phase 6 — Demo & QA** (completed)
 
 | Phase | Status |
 | ----- | ------ |
@@ -75,16 +75,16 @@ admission-management-platform/
 | 2. File Storage Design | ✅ Completed |
 | 3. Interface Design | ✅ Completed |
 | 4. Class Skeletons | ✅ Completed |
-| 5. Implementation | ⬜ Pending |
-| 6. Demo | ⬜ Pending |
+| 5. Implementation | ✅ Completed |
+| 6. QA & Testing | ✅ Completed |
 
 ## How to Run
 
-> *Available after Phase 5 — Implementation*
+Compile and run the Main application:
 
 ```bash
-javac -d out src/com/admission/**/*.java
-java -cp out com.admission.Main
+javac -d bin -sourcepath src src/com/admission/Main.java
+java -cp bin com.admission.Main
 ```
 
 ## Documentation

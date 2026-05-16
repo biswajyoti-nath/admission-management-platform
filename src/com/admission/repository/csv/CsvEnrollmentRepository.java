@@ -95,14 +95,27 @@ public class CsvEnrollmentRepository implements EnrollmentRepository {
 
     @Override
     public Optional<Enrollment> findByStudentAndCycle(String studentId, String cycleId) {
+        java.io.File file = new java.io.File(filePath);
+        java.io.File parent = file.getParentFile();
+        String appFilePath = (parent == null)
+                ? "applications.csv"
+                : new java.io.File(parent, "applications.csv").getPath();
+        List<String[]> apps = CsvUtil.readAll(appFilePath);
+        List<String> validAppIds = new ArrayList<>();
+        for (String[] appRow : apps) {
+            if (appRow.length >= 3 && appRow[2].equals(cycleId)) {
+                validAppIds.add(appRow[0]);
+            }
+        }
+        
         List<String[]> data = CsvUtil.readAll(filePath);
-        // Enrollment doesn't have cycleId natively, so it's a bit tricky without application join.
-        // Wait, the interface says `findByStudentAndCycle`. But the CSV doesn't store cycleId directly,
-        // unless we join with application. However, repositories cannot call other repositories natively.
-        // Wait, actually the constraint is usually "no existing enrollment for same program/cycle". 
-        // Let's modify this to just check studentId, but cycleId isn't there. 
-        // Oh, maybe just match the Application ID? But we only have cycleId...
-        throw new UnsupportedOperationException("Join required for findByStudentAndCycle in EnrollmentRepository");
+        for (String[] row : data) {
+            if (row.length >= 3 && row[1].equals(studentId) && validAppIds.contains(row[2])) {
+                Enrollment enrollment = fromRow(row);
+                if (enrollment != null) return Optional.of(enrollment);
+            }
+        }
+        return Optional.empty();
     }
 
     @Override

@@ -53,7 +53,7 @@ public class CsvApplicationRepository implements ApplicationRepository {
         if (row.length < 6) return null;
         try {
             return new Application(row[0], row[1], row[2], Double.parseDouble(row[3]), ApplicationStatus.valueOf(row[4]), row[5]);
-        } catch (NumberFormatException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             return null;
         }
     }

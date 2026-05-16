@@ -507,5 +507,5 @@ Enter choice:
 
 ---
 
-*Document version: 1.1 — Phase 1 (updated in Phase 2 to correct status model)*
+*Document version: 1.2 — Phase 6 (Final QA and Deployment)*
 *Author: System Architect*
