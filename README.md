@@ -2,7 +2,7 @@
 
 > A production-quality, CLI-based, configurable multi-college admission and academic management system built in pure Java with CSV-based persistence.
 
-[![Phase](https://img.shields.io/badge/Phase-2%20%E2%80%93%20Storage%20Design-blue)]()
+[![Phase](https://img.shields.io/badge/Phase-3%20%E2%80%93%20Interfaces-blue)]()
 [![Java](https://img.shields.io/badge/Java-17+-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-green)]()
 
@@ -43,6 +43,7 @@ admission-management-platform/
 │   ├── model/          # Domain entities & enums
 │   ├── service/        # Business logic interfaces & implementations
 │   ├── repository/     # Data access interfaces & CSV implementations
+│   ├── strategy/       # Selection strategy interface
 │   ├── controller/     # CLI menu controllers
 │   └── utils/          # CSV utilities, ID generation
 ├── data/               # CSV data files (created at runtime)
@@ -66,13 +67,13 @@ admission-management-platform/
 
 ## Current Phase
 
-**Phase 2 — File Storage Design** (completed)
+**Phase 3 — Interface Design** (completed)
 
 | Phase | Status |
 | ----- | ------ |
 | 1. System Design | ✅ Completed |
 | 2. File Storage Design | ✅ Completed |
-| 3. Interface Design | ⬜ Pending |
+| 3. Interface Design | ✅ Completed |
 | 4. Class Skeletons | ⬜ Pending |
 | 5. Implementation | ⬜ Pending |
 | 6. Demo | ⬜ Pending |
@@ -94,6 +95,45 @@ java -cp out com.admission.Main
 | [Data Model](docs/data-model.md) | Entity definitions, relationships, ID conventions |
 | [CLI Flow](docs/cli-flow.md) | Menu structures, state transitions |
 | [CSV Design](docs/csv-design.md) | File schemas, ID generation, update strategies, constraints |
+
+## Architecture — Interfaces Layer
+
+All business logic and data access are programmed against **interfaces**, enabling
+storage-agnostic design and strict layer separation:
+
+### Repository Interfaces (11)
+
+| Interface | Domain Methods | Purpose |
+| --------- | -------------- | ------- |
+| `Repository<T>` | save, findById, findAll, updateAll | Base CRUD contract |
+| `CollegeRepository` | — | College persistence |
+| `DepartmentRepository` | findByCollege | College→Dept hierarchy |
+| `ProgramRepository` | findByDepartment | Dept→Program hierarchy |
+| `AdmissionCycleRepository` | findActiveByProgram | Active cycle queries |
+| `StudentRepository` | findByEmail | Auth & uniqueness |
+| `AdminRepository` | findByEmail | Auth lookup |
+| `ApplicationRepository` | findByStudentAndCycle, findByCycle, findByStatus | Application workflows |
+| `EnrollmentRepository` | findByStudentAndCycle, findByProgram | Enrollment constraints |
+| `SubjectRepository` | findByProgram, findByProgramAndSemester | Subject assignment |
+| `StudentSubjectRepository` | findByStudent | Student's subjects |
+
+### Service Interfaces (7)
+
+| Interface | Key Methods | Responsibility |
+| --------- | ----------- | -------------- |
+| `AuthService` | registerStudent, loginStudent, loginAdmin | Authentication |
+| `ApplicationService` | apply, getApplicationsByStudent/Cycle | Application workflow |
+| `SelectionService` | runSelection(cycleId, strategy) | Delegated selection |
+| `EnrollmentService` | enroll | Enrollment + subject assignment |
+| `AcademicService` | getSubjectsByStudent | Academic queries |
+| `AdminService` | addCollege/Dept/Program/Subject, createCycle | Configuration |
+| `AnalyticsService` | getApplicationCount, getEnrollmentStats | Reporting |
+
+### Strategy Interface (1)
+
+| Interface | Method | Purpose |
+| --------- | ------ | ------- |
+| `SelectionStrategy` | select(applications, seatCount) | Pluggable selection algorithm |
 
 ## Persistence Layer (CSV)
 
