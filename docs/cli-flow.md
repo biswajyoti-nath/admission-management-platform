@@ -74,17 +74,17 @@ Enter choice:
            ┌─────────┴──────────┐
            ▼                    ▼
     ┌───────────┐        ┌───────────┐
-    │ SELECTED  │        │ REJECTED  │  (terminal)
-    └─────┬─────┘        └───────────┘
+    │ SELECTED  │        │ REJECTED  │
+    │ (terminal)│        │ (terminal)│
+    └───────────┘        └───────────┘
           │
-    Student accepts
-      & enrolls
-          │
-          ▼
-    ┌───────────┐
-    │ ENROLLED  │  (terminal)
-    └───────────┘
+    Student accepts & enrolls
+    → creates Enrollment record
+    → assigns semester 1 subjects
 ```
+
+> **Note:** `SELECTED` is a terminal **application** state. Enrollment is a
+> separate entity — the application stays SELECTED; an `Enrollment` row is created.
 
 ### Transition Rules
 
@@ -92,12 +92,17 @@ Enter choice:
 | -------- | -------- | ------------ | ----------------------------------------------- |
 | APPLIED  | SELECTED | Admin        | Score meets cutoff; seats available              |
 | APPLIED  | REJECTED | Admin        | Score below cutoff or no seats                   |
-| SELECTED | ENROLLED | Student      | Not already enrolled in another program for cycle|
+
+### On Enrollment (SELECTED → creates Enrollment record)
+
+- Student must have a SELECTED application for the cycle
+- Student must not already be enrolled in another program for the same cycle
+- A new `Enrollment` record is created; application status remains SELECTED
+- All semester-1 subjects of the program are assigned via `StudentSubject`
 
 ### Invalid Transitions (enforced by service layer)
 
 - REJECTED → anything
-- ENROLLED → anything
 - SELECTED → APPLIED (no rollback)
 
 ---
@@ -127,4 +132,4 @@ Enter choice:
 
 ---
 
-*Document version: 1.0 — Phase 1*
+*Document version: 1.1 — Phase 1 (updated in Phase 2 to correct status model)*

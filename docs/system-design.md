@@ -303,7 +303,7 @@ The system follows a strict **4-layer architecture** with unidirectional depende
 | `studentId`         | String            | FK → Student                         |
 | `admissionCycleId`  | String            | FK → AdmissionCycle                  |
 | `score`             | double            | Student's merit score / percentage   |
-| `status`            | ApplicationStatus | APPLIED → SELECTED / REJECTED → ENROLLED |
+| `status`            | ApplicationStatus | APPLIED → SELECTED / REJECTED             |
 | `appliedDate`       | String            | ISO date of application              |
 
 **Relationships:** Belongs to one Student and one AdmissionCycle.
@@ -361,8 +361,12 @@ STUDENT, ADMIN
 
 #### ApplicationStatus
 ```
-APPLIED, SELECTED, REJECTED, ENROLLED
+APPLIED, SELECTED, REJECTED
 ```
+
+> **Note:** Enrollment is modeled as a separate entity (`Enrollment`), not as an
+> application status. When a SELECTED student enrolls, the application remains
+> SELECTED and a new `Enrollment` record is created.
 
 ### 4.3 Entity-Relationship Summary
 
@@ -452,17 +456,16 @@ Enter choice:
            ┌─────────┴──────────┐
            ▼                    ▼
     ┌───────────┐        ┌───────────┐
-    │ SELECTED  │        │ REJECTED  │  (terminal state)
-    └─────┬─────┘        └───────────┘
+    │ SELECTED  │        │ REJECTED  │
+    │ (terminal)│        │ (terminal)│
+    └───────────┘        └───────────┘
           │
-    Student accepts
-      & enrolls
-          │
-          ▼
-    ┌───────────┐
-    │ ENROLLED  │  (terminal state)
-    └───────────┘
+    Student accepts & enrolls
+    (creates Enrollment record)
 ```
+
+> **Design Note:** `SELECTED` is a terminal application state. Enrollment is
+> tracked as a separate `Enrollment` entity, not as an application status change.
 
 **Transition Rules:**
 
@@ -470,11 +473,14 @@ Enter choice:
 | -------- | -------- | --------------------- | -------------------------------------------- |
 | APPLIED  | SELECTED | Admin (selection run) | Score meets cutoff; seats available           |
 | APPLIED  | REJECTED | Admin (selection run) | Score below cutoff or no seats remaining      |
-| SELECTED | ENROLLED | Student (accept)      | Student not already enrolled in another program for same cycle |
+
+**On enrollment** (SELECTED application → creates Enrollment record):
+- Student must have a SELECTED application
+- Student must not already be enrolled in another program for the same cycle
+- Application status remains SELECTED; a new `Enrollment` row is created
 
 **Invalid transitions** (enforced by service layer):
 - REJECTED → anything
-- ENROLLED → anything
 - SELECTED → APPLIED (no rollback)
 
 ---
@@ -501,5 +507,5 @@ Enter choice:
 
 ---
 
-*Document version: 1.0 — Phase 1*
+*Document version: 1.1 — Phase 1 (updated in Phase 2 to correct status model)*
 *Author: System Architect*

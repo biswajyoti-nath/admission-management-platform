@@ -2,7 +2,7 @@
 
 > A production-quality, CLI-based, configurable multi-college admission and academic management system built in pure Java with CSV-based persistence.
 
-[![Phase](https://img.shields.io/badge/Phase-1%20%E2%80%93%20System%20Design-blue)]()
+[![Phase](https://img.shields.io/badge/Phase-2%20%E2%80%93%20Storage%20Design-blue)]()
 [![Java](https://img.shields.io/badge/Java-17+-orange)]()
 [![License](https://img.shields.io/badge/License-MIT-green)]()
 
@@ -46,20 +46,36 @@ admission-management-platform/
 │   ├── controller/     # CLI menu controllers
 │   └── utils/          # CSV utilities, ID generation
 ├── data/               # CSV data files (created at runtime)
+│   ├── colleges.csv
+│   ├── departments.csv
+│   ├── programs.csv
+│   ├── admission_cycles.csv
+│   ├── students.csv
+│   ├── admins.csv
+│   ├── applications.csv
+│   ├── enrollments.csv
+│   ├── subjects.csv
+│   └── student_subjects.csv
 ├── docs/               # Design documentation
 │   ├── system-design.md
 │   ├── data-model.md
-│   └── cli-flow.md
+│   ├── cli-flow.md
+│   └── csv-design.md
 └── README.md
 ```
 
 ## Current Phase
 
-**Phase 1 — System Design** (completed)
-- System overview, scope, and assumptions
-- Layered architecture with SOLID principles
-- Domain model with 10 entities and relationships
-- CLI flow with state transition diagrams
+**Phase 2 — File Storage Design** (completed)
+
+| Phase | Status |
+| ----- | ------ |
+| 1. System Design | ✅ Completed |
+| 2. File Storage Design | ✅ Completed |
+| 3. Interface Design | ⬜ Pending |
+| 4. Class Skeletons | ⬜ Pending |
+| 5. Implementation | ⬜ Pending |
+| 6. Demo | ⬜ Pending |
 
 ## How to Run
 
@@ -77,6 +93,21 @@ java -cp out com.admission.Main
 | [System Design](docs/system-design.md) | Architecture, SOLID mapping, data flow |
 | [Data Model](docs/data-model.md) | Entity definitions, relationships, ID conventions |
 | [CLI Flow](docs/cli-flow.md) | Menu structures, state transitions |
+| [CSV Design](docs/csv-design.md) | File schemas, ID generation, update strategies, constraints |
+
+## Persistence Layer (CSV)
+
+All data is stored in **flat CSV files** under the `/data` directory:
+
+- **10 CSV files** — one per entity (colleges, departments, programs, etc.)
+- **Auto-created** — files are created with headers on first run
+- **Prefixed IDs** — auto-generated as `PREFIX-XXXX` (e.g., `STU-0001`)
+- **Append for inserts** — O(1) writes for new records
+- **Full rewrite for updates** — necessary because CSV rows are variable-length
+- **Referential integrity** — enforced at the service layer, not file level
+- **No joins** — relationships resolved programmatically via foreign key columns
+
+See [docs/csv-design.md](docs/csv-design.md) for complete schema definitions.
 
 ## Design Principles
 
@@ -84,6 +115,7 @@ java -cp out com.admission.Main
 - **No external dependencies** — Pure Java, CSV persistence
 - **Fully configurable** — No hardcoded colleges or programs
 - **Pluggable selection** — Strategy pattern for admission selection
+- **Clean status model** — `ApplicationStatus` is {APPLIED, SELECTED, REJECTED}; enrollment is a separate entity
 
 ---
 

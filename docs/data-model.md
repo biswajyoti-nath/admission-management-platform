@@ -54,7 +54,10 @@ Student ──1:N──► Application                          │
 `STUDENT`, `ADMIN`
 
 ### ApplicationStatus
-`APPLIED` → `SELECTED` / `REJECTED` → `ENROLLED`
+`APPLIED` → `SELECTED` / `REJECTED`
+
+> Enrollment is a **separate entity**, not a status. A SELECTED student who enrolls
+> retains SELECTED status; an `Enrollment` record is created alongside.
 
 ## ID Prefix Convention
 
