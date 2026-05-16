@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Compiled class file
 *.class
 
@@ -22,3 +23,27 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+=======
+# Compiled class files
+*.class
+out/
+
+# Package files
+*.jar
+*.war
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Runtime data (CSV files are committed as samples only)
+# data/*.csv
+>>>>>>> c27f58f (docs: add Phase 1 system design — architecture, domain model, and CLI flow)
