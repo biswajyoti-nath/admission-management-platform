@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# admission-management-platform
-=======
 # Admission Management Platform
 
 > A production-quality, CLI-based, configurable multi-college admission and academic management system built in pure Java with CSV-based persistence.
@@ -93,4 +90,3 @@ java -cp out com.admission.Main
 ## License
 
 MIT
->>>>>>> c27f58f (docs: add Phase 1 system design — architecture, domain model, and CLI flow)
