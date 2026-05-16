@@ -4,8 +4,11 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,7 +55,9 @@ public class CsvUtil {
     }
 
     public static void writeAll(String filePath, String[] headers, List<String[]> data) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath, false))) {
+        Path target = Path.of(filePath);
+        Path temp = Path.of(filePath + ".tmp");
+        try (BufferedWriter bw = Files.newBufferedWriter(temp, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
             bw.write(String.join(",", headers));
             bw.newLine();
             for (String[] row : data) {
@@ -67,17 +72,23 @@ public class CsvUtil {
         } catch (IOException e) {
             throw new RuntimeException("Failed to write to CSV file: " + filePath, e);
         }
+        try {
+            Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to atomically replace CSV file: " + filePath, e);
+        }
     }
 
     public static void append(String filePath, String[] data) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath, true))) {
+        Path target = Path.of(filePath);
+        try {
             for (int i = 0; i < data.length; i++) {
                 if (data[i] != null && data[i].contains(",")) {
                     throw new IllegalArgumentException("Commas are not allowed in input values: " + data[i]);
                 }
             }
-            bw.write(String.join(",", data));
-            bw.newLine();
+            String row = String.join(",", data) + System.lineSeparator();
+            Files.writeString(target, row, StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
         } catch (IOException e) {
             throw new RuntimeException("Failed to append to CSV file: " + filePath, e);
         }
@@ -90,7 +101,8 @@ public class CsvUtil {
             parent.mkdirs();
         }
         if (!file.exists()) {
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, false))) {
+            Path target = file.toPath();
+            try (BufferedWriter bw = Files.newBufferedWriter(target, StandardOpenOption.CREATE_NEW)) {
                 bw.write(String.join(",", headers));
                 bw.newLine();
             } catch (IOException e) {

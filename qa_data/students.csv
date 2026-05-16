@@ -1,0 +1,5 @@
+id,name,email,password,phone
+STU-0001,Alice,alice@test.com,9b8769a4a742959a2d0298c36fb70623f2dfacda8436237df08d8dfd5b37374c,111
+STU-0002,Bob,bob@test.com,9b8769a4a742959a2d0298c36fb70623f2dfacda8436237df08d8dfd5b37374c,222
+STU-0003,Charlie,charlie@test.com,9b8769a4a742959a2d0298c36fb70623f2dfacda8436237df08d8dfd5b37374c,333
+STU-0004,Dave,dave@test.com,9b8769a4a742959a2d0298c36fb70623f2dfacda8436237df08d8dfd5b37374c,444

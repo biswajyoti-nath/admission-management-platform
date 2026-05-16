@@ -6,6 +6,9 @@ import com.admission.repository.AdminRepository;
 import com.admission.repository.StudentRepository;
 import com.admission.service.AuthService;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 public class AuthServiceImpl implements AuthService {
@@ -24,7 +27,7 @@ public class AuthServiceImpl implements AuthService {
         if (existing.isPresent()) {
             throw new RuntimeException("Email already registered");
         }
-        Student student = new Student(null, name, email, password, phone);
+        Student student = new Student(null, name, email, hashPassword(password), phone);
         return studentRepository.save(student);
     }
 
@@ -35,7 +38,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Student not found");
         }
         Student student = studentOpt.get();
-        if (!student.getPassword().equals(password)) {
+        if (!verifyPassword(student.getPassword(), password)) {
             throw new RuntimeException("Invalid credentials");
         }
         return Optional.of(student);
@@ -48,9 +51,27 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Admin not found");
         }
         Admin admin = adminOpt.get();
-        if (!admin.getPassword().equals(password)) {
+        if (!verifyPassword(admin.getPassword(), password)) {
             throw new RuntimeException("Invalid credentials");
         }
         return Optional.of(admin);
+    }
+
+    private static boolean verifyPassword(String storedPassword, String rawPassword) {
+        return storedPassword.equals(rawPassword) || storedPassword.equals(hashPassword(rawPassword));
+    }
+
+    private static String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hash) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Password hashing algorithm unavailable", e);
+        }
     }
 }

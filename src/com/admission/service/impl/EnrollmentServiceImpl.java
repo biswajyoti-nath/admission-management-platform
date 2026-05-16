@@ -73,17 +73,24 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         );
         enrollment = enrollmentRepository.save(enrollment);
 
-        List<Subject> subjects = subjectRepository.findByProgramAndSemester(cycle.getProgramId(), 1);
-        for (Subject subject : subjects) {
-            StudentSubject ss = new StudentSubject(
-                    null,
-                    studentId,
-                    subject.getId(),
-                    1
-            );
-            studentSubjectRepository.save(ss);
+        try {
+            List<Subject> subjects = subjectRepository.findByProgramAndSemester(cycle.getProgramId(), 1);
+            for (Subject subject : subjects) {
+                StudentSubject ss = new StudentSubject(
+                        null,
+                        studentId,
+                        subject.getId(),
+                        1
+                );
+                studentSubjectRepository.save(ss);
+            }
+            return enrollment;
+        } catch (RuntimeException ex) {
+            List<Enrollment> enrollments = enrollmentRepository.findAll();
+            String enrollmentId = enrollment.getId();
+            enrollments.removeIf(e -> e.getId().equals(enrollmentId));
+            enrollmentRepository.updateAll(enrollments);
+            throw ex;
         }
-
-        return enrollment;
     }
 }

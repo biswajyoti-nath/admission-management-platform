@@ -1,79 +1,56 @@
-# Data Model — Entity Definitions & Relationships
+# Data Model
 
-> **Phase 1 Deliverable**
+This document outlines the core entities of the Admission Management Platform, mirroring the actual Java class implementations in `com.admission.model`.
+
+## Entities & Fields
+
+### Core User Entities
+*   **Admin**: `id` (String), `name` (String), `email` (String), `password` (String)
+*   **Student**: `id` (String), `name` (String), `email` (String), `password` (String), `phone` (String), `role` (Role enum: STUDENT)
+
+### Academic Structure Entities
+*   **College**: `id` (String), `name` (String), `code` (String), `address` (String)
+*   **Department**: `id` (String), `collegeId` (String), `name` (String), `code` (String)
+*   **Program**: `id` (String), `departmentId` (String), `name` (String), `durationYears` (int), `totalSeats` (int)
+*   **Subject**: `id` (String), `programId` (String), `name` (String), `code` (String), `semester` (int), `credits` (int)
+
+### Admission & Enrollment Entities
+*   **AdmissionCycle**: `id` (String), `programId` (String), `year` (int), `semester` (int), `isActive` (boolean), `seatCount` (int)
+*   **Application**: `id` (String), `studentId` (String), `admissionCycleId` (String), `score` (double), `status` (ApplicationStatus enum), `appliedDate` (String)
+*   **Enrollment**: `id` (String), `studentId` (String), `applicationId` (String), `programId` (String), `enrolledDate` (String)
+*   **StudentSubject**: `id` (String), `studentId` (String), `subjectId` (String), `semester` (int)
 
 ---
 
-## Entity Summary
+## Entity Relationships
 
-| Entity          | Primary Key | Foreign Keys                                          |
-| --------------- | ----------- | ----------------------------------------------------- |
-| College         | id          | —                                                     |
-| Department      | id          | collegeId → College                                   |
-| Program         | id          | departmentId → Department                             |
-| AdmissionCycle  | id          | programId → Program                                   |
-| Student         | id          | —                                                     |
-| Admin           | id          | —                                                     |
-| Application     | id          | studentId → Student, admissionCycleId → AdmissionCycle|
-| Enrollment      | id          | studentId, applicationId, programId                   |
-| Subject         | id          | programId → Program                                   |
-| StudentSubject  | id          | studentId → Student, subjectId → Subject              |
+The data model connects entities logically via string-based foreign keys (e.g., `collegeId`, `programId`).
+
+*   **College (1) ↔ (N) Department**: A college holds multiple departments.
+*   **Department (1) ↔ (N) Program**: A department offers multiple programs (e.g., BTech CSE).
+*   **Program (1) ↔ (N) Subject**: A program consists of various subjects mapped to specific semesters.
+*   **Program (1) ↔ (N) AdmissionCycle**: A program can run multiple admission cycles across different years/semesters.
+*   **AdmissionCycle (1) ↔ (N) Application**: Many students apply to a single active admission cycle.
+*   **Student (1) ↔ (N) Application**: A student can have multiple applications, but only one per specific `AdmissionCycle`.
+*   **Application (1) ↔ (0..1) Enrollment**: An application transitioning to `SELECTED` can trigger a single `Enrollment` record.
+*   **Enrollment (1) ↔ (N) StudentSubject**: Once enrolled, the system automatically assigns multiple `StudentSubject` records for the student's 1st semester.
 
 ---
 
-## Relationship Diagram
-
-```
-College ──1:N──► Department ──1:N──► Program ──1:N──► Subject
-                                        │
-                                        ├──1:N──► AdmissionCycle ──1:N──► Application
-                                        │                                     │
-                                        └──1:N──► Enrollment ◄────────────────┘
-                                                      │
-Student ──1:N──► Application                          │
-    │                                                  │
-    └──1:N──► StudentSubject ◄── (created upon enrollment)
-                    │
-                    └────► Subject
-```
-
-## Cardinality Rules
-
-- College → Department: 1:N (department belongs to one college)
-- Department → Program: 1:N (program belongs to one department)
-- Program → AdmissionCycle: 1:N (one cycle per year per program)
-- Program → Subject: 1:N (subject belongs to one program)
-- Student → Application: 1:N (student may apply to multiple cycles)
-- Student + AdmissionCycle → Application: 1:1 (unique pair)
-- Application → Enrollment: 0..1 (only SELECTED can enroll)
-- Enrollment → StudentSubject: 1:N (triggers subject assignment)
-
-## Enums
-
-### Role
-`STUDENT`, `ADMIN`
+## Status Definitions
 
 ### ApplicationStatus
-`APPLIED` → `SELECTED` / `REJECTED`
+Used inside the `Application` entity to track the admission process:
+*   `APPLIED`: Initial state when a student applies.
+*   `SELECTED`: Assigned when the Selection Strategy determines the student's score meets the quota.
+*   `REJECTED`: Assigned when the student's score falls below the cutoff limit.
 
-> Enrollment is a **separate entity**, not a status. A SELECTED student who enrolls
-> retains SELECTED status; an `Enrollment` record is created alongside.
-
-## ID Prefix Convention
-
-| Entity         | Prefix | Example  |
-| -------------- | ------ | -------- |
-| College        | COL    | COL-0001 |
-| Department     | DEP    | DEP-0001 |
-| Program        | PRG    | PRG-0001 |
-| AdmissionCycle | CYC    | CYC-0001 |
-| Student        | STU    | STU-0001 |
-| Admin          | ADM    | ADM-0001 |
-| Application    | APP    | APP-0001 |
-| Enrollment     | ENR    | ENR-0001 |
-| Subject        | SUB    | SUB-0001 |
-| StudentSubject | SSB    | SSB-0001 |
+**Note:** Enrollment is NOT a status of the Application. It is an independent entity (`Enrollment`) created only for `SELECTED` applications.
 
 ---
 
-*Document version: 1.0 — Phase 1*
+## Normalization & Tradeoffs
+
+*   **String IDs**: All Foreign Keys are `String` types containing formatted prefixes (e.g., `PRG-0001`). This provides easy manual debugging of the CSV files but lacks native referential integrity constraints typical of an SQL database.
+*   **Duplication tradeoff**: Some referential integrity is manually enforced in the Service Layer instead of the Data Layer, such as validating `studentId` matches the associated `Application` during enrollment.
+*   **Flattened Foreign Keys**: `StudentSubject` connects the `studentId` and `subjectId` but also explicitly stores the `semester`. This denormalization avoids deep joins when querying current subjects.

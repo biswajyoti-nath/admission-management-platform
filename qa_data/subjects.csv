@@ -1,0 +1,4 @@
+id,programId,name,code,semester,credits
+SUB-0001,PRG-0001,Mathematics I,M1,1,4
+SUB-0002,PRG-0001,Programming in C,PC,1,3
+SUB-0003,PRG-0001,Physics,PH,1,3
